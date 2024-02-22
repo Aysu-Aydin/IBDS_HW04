@@ -1,0 +1,167 @@
+---
+title: "Introduction to Biomedical Data Science / Homework-4 (Week-5)"
+author: "Aysu Aydın"
+date: "February 22, 2024"
+output:
+    html_document:
+        toc: true
+        toc_depth: 2
+        number_sections: true
+---
+
+
+In this homework you will analyze a large data set that contains information regarding flights departing from New York City airports.
+
+
+```{r}
+
+## Install it if you don't have it
+# install.packages("nycflights13")
+
+```
+
+# Load libraries (packages)
+
+- nycflights13
+- tidyverse
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+
+```
+
+
+# Familiarize yourself with the data set
+
+- Get help on the data set and understand what the indicate
+- Show the dimensions of the data
+- Look up the structure of the data to understand data types
+
+```{r}
+help(flights)
+dim(flights)
+str(flights)
+
+```
+
+
+# Use functions that apply to rows (`filter`, `slice`, `arrange` )
+
+- Create a data frame `df1` which should have all entries with `air_time` larger than 150
+- Create a data frame `df2` which have flights departing from JFK headed to MIA
+- Create a data frame `df3` which should have distances larger than the median value of distances in the whole data frame (hint you can do calculations and use functions inside `filter()` function)
+- Create a data frame `df4` subset with the 5 highest values in `dep_delay`
+- Create a data frame `df5` by 1) filtering on flights departing from JFK 2) filtering on arrival delays greater than 10, 3) Arranging based on descending departure delays (`dep_delay`) and print the ordered data frame 
+
+
+```{r}
+df1 <- flights %>% 
+  filter(air_time >150)
+
+df2 <- flights %>% 
+  filter(origin == "JFK" & dest == "MIA")
+
+df3 <- flights %>% 
+  filter(distance > median(distance))
+
+df4 <- flights %>% 
+  slice_max(order_by = dep_delay, n = 5)
+
+df5 <- flights %>% 
+  filter(origin == "JFK") %>% 
+  filter(arr_delay > 10) %>% 
+  arrange(desc(dep_delay))
+  
+
+```
+
+
+# Use `select()`, `rename()`, and `relocate()`  functions
+
+- Create a data frame `df6` by selecting the following columns: carrier, origin, dest
+- Create a data frame `df7` which should include only the columns that contains `arr` in the name
+- Create a data frame `df8` by 1) selecting all columns except `year`, `month`, and `day` 2) renaming `arr_time` column as `arrival_time` 3) reorder columns so that first `tailnum` are shown followed by all the other columns
+- Create a data frame `df9` by relocating the columns between 6 and 8 to columns 1-3
+
+
+```{r}
+df6 <- flights %>% 
+  select(carrier, origin, dest)
+
+df7 <- flights %>% 
+  select(contains("arr"))
+
+df8 <- flights %>% 
+  select(!c(year, month, day)) %>% 
+  rename(arrival_time = arr_time) %>% 
+  select(tailnum, everything())
+
+df9 <- flights %>% 
+  relocate(6:8, before = 1:3)
+  
+
+```
+
+
+# Use `mutate()`, `transmute()`, `pull()`, `distinct()` functions
+
+Using `flights` data frame as above,
+
+- Create a data frame `df10` with a new called `constant_character` which should be `"abc"`
+
+- Create a data frame `df11` with a new variable called `random_number` which should have random numbers between 1 and 100 (hint you need to make sure random sampling done as many times as there are rows. There is a useful function for getting the row number from a data frame: `nrow()`)
+
+- Using `transmute()`, create a data frame `d12` that should have a variable arr_delay_times5 and this variable should be the result of 5 * arr_delay column
+
+- Create a data frame `df13` by keeping all the distinct rows based on `origin` and `dest` pairs (hint pass `origin` and `dest` arguments into `distinct()` function to force selecting between unique pairs)
+
+- Using pipes, create `vec14` by 1)filter flights originating from JFK, 2) create a new variable `carrier_tailnum` by pasting `carrier` and `tailnum` (use `sep="_"` to concatenate with underscore), 3) pull this new column as vector 4) sample 10 random items from the vector
+
+```{r}
+df10 <- flights %>% 
+  mutate(constant_character = "abc")
+
+df11 <- flights %>% 
+  mutate(random_number = sample(1:100, replace = T, size = nrow(flights)))
+
+df12 <- flights %>% 
+  transmute(arr_delay_times5 = 5 * arr_delay)
+
+df13 <- flights %>% 
+  distinct(origin, dest)
+
+vec14 <- flights %>% 
+  filter(origin == "JFK") %>% 
+  mutate(carrier_tailnum = paste(carrier, tailnum, sep = "_")) %>% 
+  pull(carrier_tailnum) %>% 
+  sample(10)
+
+
+```
+
+
+# Apply functions to data subsets
+
+- Create `df15` by grouping flights based on origin city and calculating average `arr_delay`
+
+- Create `df16` by grouping flights based on `carrier` and count how many flights have been done by that carrier (hint `tally()` or `n()`)
+
+- Create `df17` by grouping flights based on both `origin` and `dest` and create three average variables: `avg_distance`, `avg_airtime`, `avg_arrdelay`.
+
+```{r}
+df15 <- flights %>% 
+  group_by(origin) %>% 
+  summarise(avg_delay = mean(arr_delay, na.rm = T))
+
+df16 <- flights %>% 
+  group_by(carrier) %>% 
+  tally()
+
+df17 <- flights %>% 
+  group_by(origin, dest) %>% 
+  summarise(avg_distance = mean(distance, na.rm = T),
+            avg_airtime = mean(air_time, na.rm = T),
+            avg_arrdelay = mean(arr_delay, na.rm = T))
+
+```
